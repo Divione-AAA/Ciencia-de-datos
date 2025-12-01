@@ -1,0 +1,57 @@
+_wandb:
+    value:
+        cli_version: 0.23.0
+        e:
+            fbi497fqush9xd7iux2d90k0kbdymst4:
+                codePath: c:\Users\vpn\Documents\GitHub\Ciencia-de-datos\Conferencias\wandabai.ipynb
+                codePathLocal: wandabai.ipynb
+                cpu_count: 6
+                cpu_count_logical: 12
+                disk:
+                    /:
+                        total: "326401781760"
+                        used: "317341278208"
+                email: hectordavid55555211@gmail.com
+                executable: c:\Users\vpn\Documents\GitHub\Ciencia-de-datos\.venv\Scripts\python.exe
+                git:
+                    commit: 3b2d7c6ba8ad207cc0a04bfbe5c563944e1e066b
+                    remote: https://github.com/Divione-AAA/Ciencia-de-datos.git
+                host: HP-de-David
+                memory:
+                    total: "16486756352"
+                os: Windows-10-10.0.22631-SP0
+                program: c:\Users\vpn\Documents\GitHub\Ciencia-de-datos\Conferencias\wandabai.ipynb
+                python: CPython 3.10.5
+                root: c:\Users\vpn\Documents\GitHub\Ciencia-de-datos\Conferencias
+                startedAt: "2025-12-01T02:20:39.941876Z"
+                writerId: fbi497fqush9xd7iux2d90k0kbdymst4
+        m: []
+        python_version: 3.10.5
+        t:
+            "1":
+                - 2
+                - 3
+            "2":
+                - 2
+                - 3
+            "3":
+                - 2
+                - 3
+                - 8
+                - 19
+                - 62
+            "4": 3.10.5
+            "5": 0.23.0
+            "8":
+                - 1
+                - 3
+            "10":
+                - 17
+            "12": 0.23.0
+            "13": windows-amd64
+batch_size:
+    value: 32
+epochs:
+    value: 20
+learning_rate:
+    value: 0.001

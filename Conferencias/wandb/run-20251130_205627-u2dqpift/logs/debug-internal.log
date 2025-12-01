@@ -1,0 +1,16 @@
+{"time":"2025-11-30T20:56:31.6130956-05:00","level":"INFO","msg":"stream: starting","core version":"0.23.0"}
+{"time":"2025-11-30T20:56:33.1669132-05:00","level":"INFO","msg":"stream: created new stream","id":"u2dqpift"}
+{"time":"2025-11-30T20:56:33.1669132-05:00","level":"INFO","msg":"handler: started","stream_id":"u2dqpift"}
+{"time":"2025-11-30T20:56:33.1685086-05:00","level":"INFO","msg":"stream: started","id":"u2dqpift"}
+{"time":"2025-11-30T20:56:33.1685086-05:00","level":"INFO","msg":"writer: started","stream_id":"u2dqpift"}
+{"time":"2025-11-30T20:56:33.1685086-05:00","level":"INFO","msg":"sender: started","stream_id":"u2dqpift"}
+{"time":"2025-11-30T21:05:08.3201508-05:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/files/hectordavid55555211-test/test/u2dqpift/file_stream\": EOF"}
+{"time":"2025-11-30T21:11:07.3780881-05:00","level":"INFO","msg":"flowcontrol: backed up, offloading to disk","recordNumber":249}
+{"time":"2025-11-30T21:11:09.2944939-05:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/files/hectordavid55555211-test/test/u2dqpift/file_stream\": read tcp 10.12.224.41:6927->35.186.228.49:443: wsarecv: An existing connection was forcibly closed by the remote host."}
+{"time":"2025-11-30T21:11:11.6161326-05:00","level":"INFO","msg":"flowcontrol: unblocked","totalOffloaded":24}
+{"time":"2025-11-30T21:11:19.8548005-05:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-11-30T21:11:21.4779278-05:00","level":"INFO","msg":"handler: operation stats","stats":{}}
+{"time":"2025-11-30T21:11:21.4866911-05:00","level":"INFO","msg":"stream: closing","id":"u2dqpift"}
+{"time":"2025-11-30T21:11:21.4866911-05:00","level":"INFO","msg":"handler: closed","stream_id":"u2dqpift"}
+{"time":"2025-11-30T21:11:21.4866911-05:00","level":"INFO","msg":"sender: closed","stream_id":"u2dqpift"}
+{"time":"2025-11-30T21:11:21.4866911-05:00","level":"INFO","msg":"stream: closed","id":"u2dqpift"}
