@@ -12,7 +12,7 @@ app = FastAPI()
 model = load_model("../best_emotion_model.keras")
 
 # Definir las clases de emociones (ajusta según tu modelo)
-EMOTIONS = ['Enojo', 'Disgusto', 'Miedo', 'Felicidad', 'Tristeza', 'Sorpresa', 'Neutral']
+EMOTIONS = []#Definir despues
 
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
