@@ -29,23 +29,26 @@ class Backbone(tf.keras.Model):
         self.res3 = ResidualBlock(256)
 
     def call(self, x, training=False):
-        
-        x = self.stem(x,training=training)
-        x = self.down1(x)
-        x = self.bn1(x,training=training)
-        x = tf.nn.relu(x)
-        x = self.res1(x,training=training)
-        x = self.down2(x)
-        x = self.bn2(x,training=training)
-        x = tf.nn.relu(x)
-        x = self.res2(x,training=training)
-        x = self.down3(x)
-        x = self.bn3(x,training=training)
-        x = tf.nn.relu(x)
-        x = self.res3(x,training=training)
 
-        feature1 = ...
-        feature2 = ...
-        feature3 = ...
+        # Stem
+        x = self.stem(x, training=training)
+        # Bloque 1
+        x = self.down1(x)
+        x = self.bn1(x, training=training)
+        x = tf.nn.relu(x)
+        x = self.res1(x, training=training)
+        feature1 = x
+        # Bloque 2
+        x = self.down2(x)
+        x = self.bn2(x, training=training)
+        x = tf.nn.relu(x)
+        x = self.res2(x, training=training)
+        feature2 = x
+        # Bloque 3
+        x = self.down3(x)
+        x = self.bn3(x, training=training)
+        x = tf.nn.relu(x)
+        x = self.res3(x, training=training)
+        feature3 = x
 
         return feature1, feature2, feature3
