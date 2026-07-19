@@ -4,6 +4,7 @@ El objetivo es eliminar las cajas duplicadas que detectan el mismo objeto
 """
 
 from util.BoundingBox import BoundingBox
+from losses.iou import IoU
 
 class NonMaximumSuppression:
 
@@ -26,27 +27,7 @@ class NonMaximumSuppression:
         entre dos BoundingBox.
         """
 
-        #Intersección
-        xmin = max(box1.xmin, box2.xmin)
-        ymin = max(box1.ymin, box2.ymin)
-        xmax = min(box1.xmax, box2.xmax)
-        ymax = min(box1.ymax, box2.ymax)
-
-        # Si no se tocan
-
-        if xmax <= xmin:
-            return 0.0
-
-        if ymax <= ymin:
-            return 0.0
-
-
-        #Area de la intersección
-        intersection = (xmax - xmin) * (ymax - ymin)
-
-        #Area unión
-        union = (box1.area+box2.area-intersection)
-        return intersection / union
+        return IoU.iou(box1, box2)
 
 
     def apply(self, boxes):

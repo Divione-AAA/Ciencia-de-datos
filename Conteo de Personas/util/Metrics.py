@@ -3,6 +3,7 @@ Calcula Precision, Recall y F1-Score
 La comparación entre cajas utiliza IoU
 """
 from util.NMS import NonMaximumSuppression
+from losses.iou import IoU
 
 class DetectionMetrics:
 

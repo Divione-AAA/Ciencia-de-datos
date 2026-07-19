@@ -88,17 +88,3 @@ python sea_level_predictor.py
 - Revisa las carpetas de cada tema para ver datasets (`train.csv`, `House_Price.csv`, etc.) y notebooks con explicaciones paso a paso.
 
 ---
-
-**🧭 Buenas prácticas y recomendaciones**
-- Empieza por los notebooks de `Inicio/` para familiarizarte con los datos y herramientas.
-- Reproduce los experimentos en pequeños pasos: EDA → Preprocesado → Modelado → Evaluación.
-- Documenta cambios y resultados en un notebook nuevo para cada experimento.
-
----
-
-**✉️ Contacto / Autor**
-- Repositorio personal de aprendizaje y experimentación: perfecto para compartir avances y material educativo.
-
----
-
-¡Gracias por explorar `Ciencia-de-datos`! 🚀 Si quieres que genere una versión en inglés, añadir un badge o un índice auto-generado, dímelo y lo hago.
