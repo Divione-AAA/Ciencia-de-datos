@@ -4,10 +4,8 @@ Una Bounding Box almacena toda la información de una detección.
 """
 from dataclasses import dataclass
 
-
 @dataclass
 class BoundingBox:
-
 
     #Coordenadas
     xmin: float

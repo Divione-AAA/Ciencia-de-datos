@@ -1,9 +1,8 @@
 import tensorflow as tf
 
-from models.backbone import Backbone
-from models.neck import Neck
-from models.head import YOLOHead
-
+from models.Backbone import Backbone
+from models.Neck import Neck
+from models.YoloHead import YOLOHead
 
 class YOLO(tf.keras.Model):
     "Une todo lo crado anteriormente"

@@ -3,7 +3,6 @@ import matplotlib.patches as patches
 import tensorflow as tf
 import numpy as np
 
-
 class Visualizer:
     "El objetivo es comprobar visualmente que las imagenes concuerden con las cajas de las etiquetas"
     def __init__(self, class_names=None):

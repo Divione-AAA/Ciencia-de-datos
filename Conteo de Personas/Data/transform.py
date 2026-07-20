@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-
 class Transforms:
     "Transofrma la imagen en nueva, por consiguiente tambien se necesita transformar las etiquetas"
     def __init__(self,image_size=640,flip_probability=0.5):
