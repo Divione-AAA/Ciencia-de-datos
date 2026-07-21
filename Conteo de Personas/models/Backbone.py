@@ -1,6 +1,6 @@
 from tensorflow.keras import layers
+from models import ResidualBlock
 import tensorflow as tf
-import ResidualBlock
 
 class Backbone(tf.keras.Model):
     "Extrae caracteristicas de la imagen, procesa bordes, texturas etc."

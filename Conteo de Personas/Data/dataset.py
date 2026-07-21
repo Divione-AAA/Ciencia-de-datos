@@ -1,7 +1,6 @@
-from Data.parser import Transforms
+from Data.transform import Transforms
 from pathlib import Path
 import tensorflow as tf
-
 
 class PeopleDataset:
 
