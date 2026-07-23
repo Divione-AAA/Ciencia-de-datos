@@ -142,7 +142,6 @@ class DatasetExplorer:
                     class_counter[cls] += 1
 
         print("\nOBJECT STATISTICS")
-        print("="*60)
         print(f"Total objects : {total_objects}")
         print()
         for cls, count in class_counter.items():

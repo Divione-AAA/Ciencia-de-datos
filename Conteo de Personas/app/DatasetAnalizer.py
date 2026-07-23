@@ -3,6 +3,9 @@ import numpy as np
 
 class DatasetAnalizer():
 
+    def __init__(self, path):
+        self.dataset_path = path
+
     def people_per_image(self):
 
         people = []
