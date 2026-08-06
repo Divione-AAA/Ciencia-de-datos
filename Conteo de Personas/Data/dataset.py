@@ -43,16 +43,13 @@ class PeopleDataset:
         return image, boxes
 
     def get_paths(self, dataset_path, split):
-        "Obtiene rutas"
-        dataset_path = Path(dataset_path)
-        image_dir = dataset_path / split / "images"
-        label_dir = dataset_path / split / "labels"
-        image_paths = sorted(image_dir.glob("*"))
-        label_paths = []
 
-        for image in image_paths:
-            label = label_dir / (image.stem + ".txt")
-            label_paths.append(label)
+        image_dir = Path(dataset_path) / split / split
+        image_paths = sorted(image_dir.glob("*.jpg"))
+        label_paths = [
+            img.with_suffix(".txt")
+            for img in image_paths
+        ]
 
         return image_paths, label_paths
 
