@@ -1,6 +1,8 @@
-from Data.transform import Transforms
+import csv
 from pathlib import Path
+import numpy as np
 import tensorflow as tf
+from Data.transform import Transforms
 
 class PeopleDataset:
 
@@ -24,44 +26,73 @@ class PeopleDataset:
 
         return image
 
-    def load_label(self, label_path):
-        "Procesa las etiquetas de las imagenes"
-        text = tf.io.read_file(label_path)#Lee las etiquetas y las guarda
-        text = tf.strings.strip(text)
-        lines = tf.strings.split(text, "\n")#Las divide
-        values = tf.strings.split(lines)
-        values = tf.strings.to_number(values,tf.float32)
-
-        return values
-
-    def parse_sample(self,image_path,label_path):
+    def parse_sample(self, image_path, boxes):
         "Toma una de ejemplo"
         image = self.load_image(image_path)
-        boxes = self.load_label(label_path)
-        image, boxes = self.transforms(image,boxes)
+        image, boxes = self.transforms(image, boxes)
 
         return image, boxes
 
     def get_paths(self, dataset_path, split):
 
-        image_dir = Path(dataset_path) / split / split
+        image_dir = Path(dataset_path) / split
         image_paths = sorted(image_dir.glob("*.jpg"))
-        label_paths = [
-            img.with_suffix(".txt")
-            for img in image_paths
-        ]
 
-        return image_paths, label_paths
+        if not image_paths:
+            raise FileNotFoundError(
+                f"No se encontraron imagenes .jpg en {image_dir}"
+            )
 
-    def create_dataset(self,dataset_path,split):
+        csv_path = image_dir / "_annotations.csv"
+        if not csv_path.exists():
+            raise FileNotFoundError(
+                f"No se encontro el archivo de anotaciones {csv_path}"
+            )
+
+        boxes_by_name = {}
+        with open(csv_path, newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if not row or not row.get("filename"):
+                    continue
+                width = float(row["width"])
+                height = float(row["height"])
+                xmin = float(row["xmin"])
+                ymin = float(row["ymin"])
+                xmax = float(row["xmax"])
+                ymax = float(row["ymax"])
+
+                box = np.asarray([
+                    0.0,
+                    ((xmin + xmax) / 2.0) / width,
+                    ((ymin + ymax) / 2.0) / height,
+                    (xmax - xmin) / width,
+                    (ymax - ymin) / height,
+                ], dtype=np.float32)
+
+                boxes_by_name.setdefault(row["filename"], []).append(box)
+
+        return image_paths, boxes_by_name
+
+    def _generator(self, image_paths, boxes_by_name):
+        "Generador de (ruta de imagen, cajas en formato YOLO)"
+        for image_path in image_paths:
+            filename = image_path.name
+            boxes = boxes_by_name.get(filename, [])
+            boxes = np.asarray(boxes, dtype=np.float32).reshape(-1, 5)
+            yield str(image_path), boxes
+
+    def create_dataset(self, dataset_path, split):
         "Crea el dataset de tensorflow"
-        image_paths, label_paths = self.get_paths(dataset_path,split)
+        image_paths, boxes_by_name = self.get_paths(dataset_path, split)
 
-        #obtiene las ubicaciones
-        image_paths = [str(x) for x in image_paths]
-        label_paths = [str(x) for x in label_paths]
-
-        dataset = tf.data.Dataset.from_tensor_slices((image_paths,label_paths))
+        dataset = tf.data.Dataset.from_generator(
+            lambda: self._generator(image_paths, boxes_by_name),
+            output_signature=(
+                tf.TensorSpec(shape=(), dtype=tf.string),
+                tf.TensorSpec(shape=(None, 5), dtype=tf.float32),
+            ),
+        )
 
         if split == "train" and self.shuffle:
             dataset = dataset.shuffle(self.buffer_size)

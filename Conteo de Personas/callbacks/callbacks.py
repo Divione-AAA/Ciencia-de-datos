@@ -26,7 +26,6 @@ class Callbacks:
                 restore_best_weights=True,
                 verbose=1
             ),
-
             #Guarda el mejor modelo
             tf.keras.callbacks.ModelCheckpoint(
                 filepath=os.path.join(
@@ -38,7 +37,6 @@ class Callbacks:
                 save_weights_only=False,
                 verbose=1
             ),
-
             #Permite definir estrategia
             tf.keras.callbacks.ReduceLROnPlateau(
                 monitor="val_loss",
@@ -47,7 +45,6 @@ class Callbacks:
                 min_lr=1e-7,
                 verbose=1
             ),
-
             #Guarda historial
             tf.keras.callbacks.CSVLogger(
                 os.path.join(
@@ -55,7 +52,6 @@ class Callbacks:
                     "training_log.csv"
                 )
             ),
-
             #Tensorboard
             tf.keras.callbacks.TensorBoard(
                 log_dir=os.path.join(
@@ -66,7 +62,6 @@ class Callbacks:
                 write_graph=True,
                 update_freq="epoch"
             ),
-
             tf.keras.callbacks.TerminateOnNaN()#Finaliza si hay un nan
         ]
         

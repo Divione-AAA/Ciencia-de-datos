@@ -3,7 +3,8 @@ import numpy as np
 
 class DatasetAnalizer():
 
-    def __init__(self, path):
+    def __init__(self, path, splits):
+        self.splits = splits
         self.dataset_path = path
 
     def people_per_image(self):
