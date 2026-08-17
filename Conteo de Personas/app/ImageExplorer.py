@@ -1,10 +1,13 @@
+import csv
+from pathlib import Path
 import cv2
 import matplotlib.pyplot as plt
 
 class ImageExplorer():
 
     def __init__(self,path):
-        self.dataset_path = path
+        self.dataset_path = Path(path)
+        self.splits = ["train", "valid", "test"]
 
     def image_resolution_distribution(self):
         """
@@ -16,9 +19,9 @@ class ImageExplorer():
 
         for split in self.splits:
 
-            image_dir = self.dataset_path / split / "images"
+            image_dir = self.dataset_path / split
 
-            for image_path in image_dir.glob("*"):
+            for image_path in image_dir.glob("*.jpg"):
                 image = cv2.imread(str(image_path))
                 
                 if image is None:
@@ -53,7 +56,7 @@ class ImageExplorer():
 
     def images_without_annotations(self):
         """
-        Busca archivos .txt que existan pero estén vacíos.
+        Busca imágenes que no posean ninguna anotación.
         """
 
         empty_annotations = []
@@ -61,23 +64,27 @@ class ImageExplorer():
         # Recorremos train, valid y test
         for split in self.splits:
 
-            label_dir = self.dataset_path / split / "labels"
-            for label_file in label_dir.glob("*.txt"):
+            image_dir = self.dataset_path / split
+            csv_path = image_dir / "_annotations.csv"
+            labeled = set()
+            if csv_path.exists():
+                with open(csv_path, newline="", encoding="utf-8") as f:
+                    for row in csv.DictReader(f):
+                        if row and row.get("filename"):
+                            labeled.add(row["filename"])
 
-                # Leer todo el archivo
-                with open(label_file, "r") as file:
-                    lines = file.readlines()
+            for image_path in image_dir.glob("*.jpg"):
 
-                # Si no tiene líneas, no hay objetos anotados
-                if len(lines) == 0:
-                    empty_annotations.append({"split": split,"label": label_file.name,"image": label_file.stem + ".jpg"})
+                # Si no tiene anotaciones, no hay objetos marcados
+                if image_path.name not in labeled:
+                    empty_annotations.append({"split": split,"image": image_path.name})
 
         return empty_annotations
     
     def report_images_without_annotations(self):
         """
         Imprime un reporte de imágenes
-        cuyos archivos de anotación están vacíos.
+        sin anotaciones.
         """
 
         empty = self.images_without_annotations()
@@ -99,9 +106,9 @@ class ImageExplorer():
 
         for split in self.splits:
 
-            image_dir = self.dataset_path / split / "images"
+            image_dir = self.dataset_path / split
 
-            for image_path in image_dir.glob("*"):
+            for image_path in image_dir.glob("*.jpg"):
                 image = cv2.imread(str(image_path))
                 # OpenCV no pudo abrir la imagen
                 if image is None:

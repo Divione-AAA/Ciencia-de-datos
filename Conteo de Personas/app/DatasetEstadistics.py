@@ -33,9 +33,9 @@ class DatasetStatistics:
         #Recorremos cada partición.
         for split in self.splits:
             #Ruta donde están las imágenes.
-            image_dir = self.dataset_path / split / "images"
+            image_dir = self.dataset_path / split
             #Contamos todas las imágenes.
-            total = len(list(image_dir.glob("*")))
+            total = len(list(image_dir.glob("*.jpg")))
             counts[split] = total
 
         return counts

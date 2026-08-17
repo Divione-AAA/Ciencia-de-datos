@@ -1,5 +1,6 @@
-from collections import Counter
+import csv
 from pathlib import Path
+from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -27,23 +28,34 @@ class DatasetExplorer:
             "test"
         ]
 
+    def _labels(self, split):
+        """
+        Cuenta el número de anotaciones en el _annotations.csv
+        de una partición.
+        """
+        csv_path = self.dataset_path / split / "_annotations.csv"
+        if not csv_path.exists():
+            return []
+        with open(csv_path, newline="", encoding="utf-8") as f:
+            return list(csv.DictReader(f))
+
     def analyze_split(self, split):
 
         """
         Analiza un conjunto específico.
         """
 
-        image_dir = self.dataset_path / split / "images"
-        label_dir = self.dataset_path / split / "labels"
-        image_paths = sorted(image_dir.glob("*"))
-        label_paths = sorted(label_dir.glob("*.txt"))
+        image_dir = self.dataset_path / split
+        image_paths = sorted(image_dir.glob("*.jpg"))
+        labels = self._labels(split)
 
         return {
             "images": len(image_paths),
-            "labels": len(label_paths),
+            "labels": len(labels),
             "image_paths": image_paths,
-            "label_paths": label_paths
+            "label_paths": labels
         }
+
     def dataset_summary(self):
 
         """
@@ -70,21 +82,20 @@ class DatasetExplorer:
     def images_without_labels(self):
 
         """
-        Busca imágenes que no poseen archivo .txt.
+        Busca imágenes que no poseen ninguna anotación.
         """
 
         print("\nSearching images without labels...\n")
         total = 0
 
         for split in self.splits:
-            image_dir = self.dataset_path / split / "images"
-            label_dir = self.dataset_path / split / "labels"
-            images = image_dir.glob("*")
+            image_dir = self.dataset_path / split
+            images = image_dir.glob("*.jpg")
+            labeled = {row["filename"] for row in self._labels(split)}
             for image in images:
-                label = label_dir / (image.stem + ".txt")
-                if not label.exists():
+                if image.name not in labeled:
                     total += 1
-                    print(label.name)
+                    print(image.name)
 
         print()
         print(f"Missing labels : {total}")
@@ -99,24 +110,12 @@ class DatasetExplorer:
         total = 0
 
         for split in self.splits:
-            image_dir = self.dataset_path / split / "images"
-            label_dir = self.dataset_path / split / "labels"
-            labels = label_dir.glob("*.txt")
-            for label in labels:
-                found = False
-                for extension in [
-                    ".jpg",
-                    ".jpeg",
-                    ".png"
-                ]:
-
-                    image = image_dir / (label.stem + extension)
-                    if image.exists():
-                        found = True
-                        break
-                if not found:
+            image_dir = self.dataset_path / split
+            names = {p.name for p in image_dir.glob("*.jpg")}
+            for row in self._labels(split):
+                if row["filename"] not in names:
                     total += 1
-                    print(label.name)
+                    print(row["filename"])
 
         print()
         print(f"Orphan labels : {total}")
@@ -132,14 +131,9 @@ class DatasetExplorer:
         class_counter = Counter()
 
         for split in self.splits:
-            label_dir = self.dataset_path / split / "labels"
-            for file in label_dir.glob("*.txt"):
-                with open(file) as f:
-                    lines = f.readlines()
-                total_objects += len(lines)
-                for line in lines:
-                    cls = int(line.split()[0])
-                    class_counter[cls] += 1
+            for row in self._labels(split):
+                total_objects += 1
+                class_counter[row["class"]] += 1
 
         print("\nOBJECT STATISTICS")
         print(f"Total objects : {total_objects}")
@@ -157,8 +151,8 @@ class DatasetExplorer:
         resolutions = Counter()
 
         for split in self.splits:
-            image_dir = self.dataset_path / split / "images"
-            for image_path in image_dir.glob("*"):
+            image_dir = self.dataset_path / split
+            for image_path in image_dir.glob("*.jpg"):
                 image = cv2.imread(str(image_path))
                 h, w = image.shape[:2]
                 resolutions[(w, h)] += 1

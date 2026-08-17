@@ -1,3 +1,4 @@
+import csv
 from pathlib import Path
 import numpy as np
 
@@ -11,8 +12,42 @@ class InvalidBoundingBoxes:
         """
 
         self.dataset_path = Path(path)
+        self.splits = ["train", "valid", "test"]
 
-        
+    def _rows(self, split):
+        """
+        Lee el _annotations.csv de una partición
+        y lo convierte a formato YOLO normalizado.
+        """
+        csv_path = self.dataset_path / split / "_annotations.csv"
+        if not csv_path.exists():
+            return [], []
+        rows = []
+        files = []
+        with open(csv_path, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if not row or not row.get("filename"):
+                    continue
+                width = float(row["width"])
+                height = float(row["height"])
+                xmin = float(row["xmin"])
+                ymin = float(row["ymin"])
+                xmax = float(row["xmax"])
+                ymax = float(row["ymax"])
+
+                yolo = np.asarray([
+                    0.0,
+                    ((xmin + xmax) / 2.0) / width,
+                    ((ymin + ymax) / 2.0) / height,
+                    (xmax - xmin) / width,
+                    (ymax - ymin) / height,
+                ], dtype=np.float32)
+
+                rows.append(yolo)
+                files.append(csv_path)
+
+        return rows, files
+
     def invalid_boxes(self):
         """
         Busca cajas cuyo ancho o alto
@@ -23,28 +58,18 @@ class InvalidBoundingBoxes:
 
         for split in self.splits:
 
-            label_dir = self.dataset_path / split / "labels"
+            rows, files = self._rows(split)
 
-            for label_file in label_dir.glob("*.txt"):
+            for row, file in zip(rows, files):
 
-                data = np.loadtxt(label_file)
+                width = row[3]
+                height = row[4]
 
-                if data.size == 0:
-                    continue
-
-                if data.ndim == 1:
-                    data = np.expand_dims(data,0)
-
-                for row in data:
-
-                    width = row[3]
-                    height = row[4]
-
-                    if width <= 0 or height <= 0:
-                        invalid.append({"file":label_file,"width":width,"height":height})
+                if width <= 0 or height <= 0:
+                    invalid.append({"file": file,"width":width,"height":height})
 
         return invalid
-    
+
     def report_invalid_boxes(self):
 
         invalid = self.invalid_boxes()
@@ -65,30 +90,20 @@ class InvalidBoundingBoxes:
 
         for split in self.splits:
 
-            label_dir = self.dataset_path / split / "labels"
+            rows, files = self._rows(split)
 
-            for label_file in label_dir.glob("*.txt"):
+            for row, file in zip(rows, files):
 
-                data = np.loadtxt(label_file)
+                x = row[1]
+                y = row[2]
+                w = row[3]
+                h = row[4]
 
-                if data.size == 0:
-                    continue
-
-                if data.ndim == 1:
-                    data = np.expand_dims(data,0)
-
-                for row in data:
-
-                    x = row[1]
-                    y = row[2]
-                    w = row[3]
-                    h = row[4]
-
-                    if (x < 0 or x > 1 or y < 0 or y > 1 or w <= 0 or w > 1 or h <= 0 or h > 1):
-                        invalid.append({"file":label_file,"values":row})
+                if (x < 0 or x > 1 or y < 0 or y > 1 or w <= 0 or w > 1 or h <= 0 or h > 1):
+                    invalid.append({"file": file,"values":row})
 
         return invalid
-    
+
     def report_out_of_bounds(self):
 
         invalid = self.out_of_bounds_boxes()

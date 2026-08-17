@@ -1,24 +1,35 @@
+import csv
+from pathlib import Path
+from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
 
 class DatasetAnalizer():
 
-    def __init__(self, path, splits):
-        self.splits = splits
-        self.dataset_path = path
+    def __init__(self, path, splits=None):
+        self.dataset_path = Path(path)
+        self.splits = splits or ["train", "valid", "test"]
+
+    def _annotations(self, split):
+        "Lee el _annotations.csv de una particion"
+        csv_path = self.dataset_path / split / "_annotations.csv"
+        rows = []
+        if csv_path.exists():
+            with open(csv_path, newline="", encoding="utf-8") as f:
+                for row in csv.DictReader(f):
+                    if row and row.get("filename"):
+                        rows.append(row)
+        return rows
 
     def people_per_image(self):
 
-        people = []
+        people = Counter()
         for split in self.splits:
-            label_dir = self.dataset_path / split / "labels"
-            for label in label_dir.glob("*.txt"):
-                with open(label) as f:
-                    lines = f.readlines()
-                people.append(len(lines))
+            for row in self._annotations(split):
+                people[row["filename"]] += 1
 
-        return people
-    
+        return list(people.values())
+
     def plot_people_distribution(self):
 
         """
@@ -37,22 +48,20 @@ class DatasetAnalizer():
 
     def bbox_width_distribution(self):
         """
-        Extrae el ancho de todas
+        Extrae el ancho normalizado de todas
         las bounding boxes.
         """
 
         widths = []
 
         for split in self.splits:
-            label_dir = self.dataset_path / split / "labels"
-            for file in label_dir.glob("*.txt"):
-                data = np.loadtxt(file)
-                if data.ndim == 1:
-                    data = np.expand_dims(data,0)
-                widths.extend(data[:,3])
+            for row in self._annotations(split):
+                width = float(row["width"])
+                w = (float(row["xmax"]) - float(row["xmin"])) / width
+                widths.append(w)
 
         return widths
-    
+
     def plot_width_distribution(self):
         widths = self.bbox_width_distribution()
         plt.figure(figsize=(9,5))
