@@ -23,11 +23,7 @@ class YOLOLoss(tf.keras.losses.Loss):
         self.bbox_loss = BBoxLoss(
             loss_type=bbox_type
         )
-        self.objectness_loss = ObjectnessLoss(
-            focal_gamma=2.0,
-            alpha=0.25,
-            label_smoothing=0.0
-        )
+        self.objectness_loss = ObjectnessLoss()
         self.classification_loss = ClassificationLoss(
             focal_gamma=2.0,
             alpha=0.25,
@@ -67,37 +63,11 @@ class YOLOLoss(tf.keras.losses.Loss):
             pred_cls
         )
 
-        #Las combinma
+        #Las combina
         total_loss = (
             self.lambda_box * bbox_loss +
             self.lambda_obj * object_loss +
             self.lambda_cls * classification_loss
-        )
-
-        #Registra metricas en TensorBoard
-
-        self.add_metric(
-            bbox_loss,
-            name="bbox_loss",
-            aggregation="mean"
-        )
-
-        self.add_metric(
-            object_loss,
-            name="objectness_loss",
-            aggregation="mean"
-        )
-
-        self.add_metric(
-            classification_loss,
-            name="classification_loss",
-            aggregation="mean"
-        )
-
-        self.add_metric(
-            total_loss,
-            name="total_loss",
-            aggregation="mean"
         )
 
         return total_loss

@@ -13,6 +13,8 @@ class PeopleDataset:
         self.shuffle = config.get("SHUFFLE", True)
         self.buffer_size = config.get("BUFFER_SIZE", 1000)
         self.autotune = tf.data.AUTOTUNE
+        self.grid_size = config.get("GRID_SIZE", 80)
+        self.num_classes = config.get("NUM_CLASSES", 1)
         self.transforms = Transforms(image_size=self.image_size)
 
     def load_image(self, image_path):
@@ -32,6 +34,73 @@ class PeopleDataset:
         image, boxes = self.transforms(image, boxes)
 
         return image, boxes
+
+    @staticmethod
+    def encode_boxes_to_grid(boxes, grid_size, image_size, num_classes=1):
+        """
+        Convierte cajas YOLO (batch, N, 5) = [cls, cx, cy, w, h] normalizado
+        en un tensor denso (batch, grid, grid, 5 + num_classes)
+        con la forma [tx, ty, tw, th, obj, cls_onehot] que espera YOLOLoss.
+        """
+        def encode_image(one):
+            one = tf.cast(one, tf.float32)
+            valid_idx = tf.squeeze(tf.where(one[:, 0] >= 0.0), axis=1)
+            num_valid = tf.cast(tf.shape(valid_idx)[0], tf.int32)
+            target = tf.zeros((grid_size, grid_size, 5 + num_classes), tf.float32)
+
+            def cond(k, tgt):
+                return k < num_valid
+
+            def body(k, tgt):
+                i = valid_idx[k]
+                b = one[i]
+
+                cx = b[1]
+                cy = b[2]
+                w = b[3]
+                h = b[4]
+
+                col = tf.minimum(
+                    tf.cast(tf.math.floor(cx * grid_size), tf.int32),
+                    grid_size - 1
+                )
+                row = tf.minimum(
+                    tf.cast(tf.math.floor(cy * grid_size), tf.int32),
+                    grid_size - 1
+                )
+
+                tx = cx * grid_size - tf.cast(col, tf.float32)
+                ty = cy * grid_size - tf.cast(row, tf.float32)
+                tw = w * tf.cast(image_size, tf.float32)
+                th = h * tf.cast(image_size, tf.float32)
+
+                cls = tf.one_hot(
+                    tf.cast(b[0], tf.int32),
+                    num_classes,
+                    dtype=tf.float32
+                )
+                val = tf.concat([[tx, ty, tw, th, 1.0], cls], axis=0)
+
+                tgt = tf.tensor_scatter_nd_update(tgt, [[row, col]], [val])
+                return k + 1, tgt
+
+            _, target = tf.while_loop(cond, body, (0, target))
+            return target
+
+        return tf.map_fn(encode_image, boxes, fn_output_signature=tf.float32)
+
+    def prepare_for_training(self, dataset):
+        "Transforma las cajas en targets densos para la red"
+        def apply_fn(image, boxes):
+            targets = self.encode_boxes_to_grid(
+                boxes,
+                self.grid_size,
+                self.image_size,
+                self.num_classes
+            )
+            return image, targets
+
+        return dataset.map(apply_fn, num_parallel_calls=self.autotune)
 
     def get_paths(self, dataset_path, split):
 

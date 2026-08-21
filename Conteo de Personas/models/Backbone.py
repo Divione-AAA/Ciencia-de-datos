@@ -1,5 +1,5 @@
 from tensorflow.keras import layers
-from models import ResidualBlock
+from models.ResidualBlock import ResidualBlock
 import tensorflow as tf
 
 class Backbone(tf.keras.Model):

@@ -27,7 +27,7 @@ class NonMaximumSuppression:
         entre dos BoundingBox.
         """
 
-        return IoU.iou(box1, box2)
+        return IoU.iou(box1.to_xyxy(), box2.to_xyxy())
 
 
     def apply(self, boxes):
