@@ -41,6 +41,9 @@ class PeopleDataset:
         Convierte cajas YOLO (batch, N, 5) = [cls, cx, cy, w, h] normalizado
         en un tensor denso (batch, grid, grid, 5 + num_classes)
         con la forma [tx, ty, tw, th, obj, cls_onehot] que espera YOLOLoss.
+
+        tx, ty = desplazamiento del centro dentro de la celda [0, 1)
+        tw, th = ancho y alto normalizados [0, 1]
         """
         def encode_image(one):
             one = tf.cast(one, tf.float32)
@@ -71,8 +74,8 @@ class PeopleDataset:
 
                 tx = cx * grid_size - tf.cast(col, tf.float32)
                 ty = cy * grid_size - tf.cast(row, tf.float32)
-                tw = w * tf.cast(image_size, tf.float32)
-                th = h * tf.cast(image_size, tf.float32)
+                tw = w
+                th = h
 
                 cls = tf.one_hot(
                     tf.cast(b[0], tf.int32),

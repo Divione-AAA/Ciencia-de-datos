@@ -48,9 +48,12 @@ class YOLOLoss(tf.keras.losses.Loss):
         pred_cls = y_pred[..., 5:]
 
         #Calcula perdidas individuales
-        bbox_loss = self.bbox_loss(
+        #La perdida de cajas solo se calcula en las
+        #celdas donde existe un objeto (objectness = 1)
+        bbox_loss = self.bbox_loss.call(
             true_boxes,
-            pred_boxes
+            pred_boxes,
+            weights=true_obj[..., 0]
         )
 
         object_loss = self.objectness_loss(

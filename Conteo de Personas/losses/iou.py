@@ -4,6 +4,10 @@ No calcula pérdidas directamente
 Su objetivo es medir qué tan parecidas son dos Bounding Boxes
 bbox_loss.py utilizará estas funciones
 para construir la función de pérdida
+
+Todas las operaciones están vectorizadas sobre el último eje,
+por lo que funcionan con una sola caja (4,) o con lotes (..., 4).
+El formato de las cajas es xyxy: [xmin, ymin, xmax, ymax].
 """
 
 import tensorflow as tf
@@ -21,8 +25,8 @@ class IoU:
 
         Parámetros
         ----------
-        box1 : Tensor(4)
-        box2 : Tensor(4)
+        box1 : Tensor (..., 4)
+        box2 : Tensor (..., 4)
 
         Retorna
         -------
@@ -34,16 +38,16 @@ class IoU:
         #lo que romperia el flujo de trabajo
 
         #Borde izquierdo de la intersección
-        xmin = tf.maximum(box1[0], box2[0])
+        xmin = tf.maximum(box1[..., 0], box2[..., 0])
 
         #Borde superior
-        ymin = tf.maximum(box1[1], box2[1])
+        ymin = tf.maximum(box1[..., 1], box2[..., 1])
 
         #Borde derecho
-        xmax = tf.minimum(box1[2], box2[2])
+        xmax = tf.minimum(box1[..., 2], box2[..., 2])
 
         #Borde inferior
-        ymax = tf.minimum(box1[3], box2[3])
+        ymax = tf.minimum(box1[..., 3], box2[..., 3])
 
         #Evitar áreas negativas
         width = tf.maximum(0.0, xmax - xmin)
@@ -56,20 +60,20 @@ class IoU:
     @staticmethod
     def area(box):
         """
-        Calcula el área de una Bounding Box.
+        Calcula el área de una o más Bounding Boxes.
 
         Parámetros
         ----------
-        box : Tensor(4)
+        box : Tensor (..., 4)
 
         Retorna
         -------
-        Área de la caja.
+        Área de la(s) caja(s).
         """
 
-        width = tf.maximum(0.0, box[2] - box[0])
+        width = tf.maximum(0.0, box[..., 2] - box[..., 0])
 
-        height = tf.maximum(0.0, box[3] - box[1])
+        height = tf.maximum(0.0, box[..., 3] - box[..., 1])
 
         return width * height
 
@@ -114,12 +118,12 @@ class IoU:
         DIoU y CIoU.
         """
 
-        xmin = tf.minimum(box1[0], box2[0])
-        ymin = tf.minimum(box1[1], box2[1])
-        xmax = tf.maximum(box1[2], box2[2])
-        ymax = tf.maximum(box1[3], box2[3])
+        xmin = tf.minimum(box1[..., 0], box2[..., 0])
+        ymin = tf.minimum(box1[..., 1], box2[..., 1])
+        xmax = tf.maximum(box1[..., 2], box2[..., 2])
+        ymax = tf.maximum(box1[..., 3], box2[..., 3])
 
-        return tf.stack([xmin, ymin, xmax, ymax])
+        return tf.stack([xmin, ymin, xmax, ymax], axis=-1)
 
     ###############################################################
 
@@ -146,8 +150,8 @@ class IoU:
         Retorna (cx,cy)
         """
 
-        cx = (box[0] + box[2]) / 2
-        cy = (box[1] + box[3]) / 2
+        cx = (box[..., 0] + box[..., 2]) / 2
+        cy = (box[..., 1] + box[..., 3]) / 2
 
         return cx, cy
 
@@ -165,8 +169,8 @@ class IoU:
         cx2, cy2 = IoU.center(box2)
         center_distance = (cx1 - cx2) ** 2 + (cy1 - cy2) ** 2
         enclosing = IoU.enclosing_box(box1, box2)
-        w = enclosing[2] - enclosing[0]
-        h = enclosing[3] - enclosing[1]
+        w = enclosing[..., 2] - enclosing[..., 0]
+        h = enclosing[..., 3] - enclosing[..., 1]
         diagonal = w ** 2 + h ** 2
 
         return iou - center_distance / (diagonal + 1e-7)
@@ -185,12 +189,14 @@ class IoU:
 
         diou = IoU.diou(box1, box2)
 
-        w1 = box1[2] - box1[0]
-        h1 = box1[3] - box1[1]
-        w2 = box2[2] - box2[0]
-        h2 = box2[3] - box2[1]
+        w1 = box1[..., 2] - box1[..., 0]
+        h1 = box1[..., 3] - box1[..., 1]
+        w2 = box2[..., 2] - box2[..., 0]
+        h2 = box2[..., 3] - box2[..., 1]
 
-        v = (4 / (3.1415926535 ** 2)) * tf.square(tf.atan(w1 / (h1 + 1e-7))-tf.atan(w2 / (h2 + 1e-7)))
+        v = (4 / (3.1415926535 ** 2)) * tf.square(
+            tf.atan(w1 / (h1 + 1e-7)) - tf.atan(w2 / (h2 + 1e-7))
+        )
         alpha = v / ((1 - IoU.iou(box1, box2)) + v + 1e-7)
 
         return diou - alpha * v

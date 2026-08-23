@@ -57,9 +57,9 @@ class Decoder:
                 center_x = (col + tx) * stride_x
                 center_y = (row + ty) * stride_y
 
-                #Tamaño
-                width = abs(tw)
-                height = abs(th)
+                #Tamaño (normalizado -> pixeles)
+                width = abs(tw) * self.image_size
+                height = abs(th) * self.image_size
 
                 #Conversión
                 xmin = center_x - width / 2
